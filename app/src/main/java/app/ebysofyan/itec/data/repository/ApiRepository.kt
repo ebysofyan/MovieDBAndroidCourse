@@ -3,7 +3,7 @@ package app.ebysofyan.itec.data.repository
 import app.ebysofyan.itec.core.base.PaginateResponse
 import app.ebysofyan.itec.core.utils.NetworkConfig
 import app.ebysofyan.itec.data.remote.api.ApiServices
-import app.ebysofyan.itec.data.remote.model.Movie
+import app.ebysofyan.itec.data.remote.model.MovieModel
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.QueryMap
@@ -27,12 +27,12 @@ class ApiRepository {
         }
     }
 
-    fun fetchMovies(@QueryMap queryMap: HashMap<String, String> = hashMapOf()): Call<PaginateResponse<Movie>> {
+    fun fetchMovies(@QueryMap queryMap: HashMap<String, String> = hashMapOf()): Call<PaginateResponse<MovieModel>> {
         val service = NetworkConfig.client.create(ApiServices::class.java)
         return service.fetchMovies(queryMap = queryMap)
     }
 
-    suspend fun fetchMovies1(@QueryMap queryMap: HashMap<String, String> = hashMapOf()): Response<PaginateResponse<Movie>> {
+    suspend fun fetchMovies1(@QueryMap queryMap: HashMap<String, String> = hashMapOf()): Response<PaginateResponse<MovieModel>> {
         val service = NetworkConfig.client.create(ApiServices::class.java)
         return service.fetchMovies1(queryMap = queryMap)
     }

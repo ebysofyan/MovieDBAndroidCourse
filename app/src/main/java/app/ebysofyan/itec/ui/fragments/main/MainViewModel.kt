@@ -5,8 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
+import app.ebysofyan.itec.core.base.ApiResponse
 import app.ebysofyan.itec.core.base.PaginateResponse
-import app.ebysofyan.itec.data.remote.model.Movie
+import app.ebysofyan.itec.data.remote.model.MovieModel
 import app.ebysofyan.itec.data.repository.ApiRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
@@ -19,18 +20,18 @@ import java.io.IOException
 
 class MainViewModel : ViewModel() {
     private val apiRepository = ApiRepository.getInstance()
-    private var moviesLiveData: MutableLiveData<PaginateResponse<Movie>> = MutableLiveData()
+    private var moviesLiveData: MutableLiveData<PaginateResponse<MovieModel>> = MutableLiveData()
 
-    fun fetchMovies(@QueryMap queryMap: HashMap<String, String> = hashMapOf()): LiveData<PaginateResponse<Movie>> {
+    fun fetchMovies(@QueryMap queryMap: HashMap<String, String> = hashMapOf()): LiveData<PaginateResponse<MovieModel>> {
         apiRepository?.fetchMovies(queryMap = queryMap)?.enqueue(object :
-            Callback<PaginateResponse<Movie>> {
-            override fun onFailure(call: Call<PaginateResponse<Movie>>, t: Throwable) {
+            Callback<PaginateResponse<MovieModel>> {
+            override fun onFailure(call: Call<PaginateResponse<MovieModel>>, t: Throwable) {
                 Log.e("onFailure", Gson().toJson(t.message))
             }
 
             override fun onResponse(
-                call: Call<PaginateResponse<Movie>>,
-                response: Response<PaginateResponse<Movie>>
+                call: Call<PaginateResponse<MovieModel>>,
+                response: Response<PaginateResponse<MovieModel>>
             ) {
                 when {
                     response.isSuccessful -> {
@@ -47,8 +48,7 @@ class MainViewModel : ViewModel() {
         return this.moviesLiveData
     }
 
-    // With coroutine scope
-    fun fetchMovies1(@QueryMap queryMap: HashMap<String, String> = hashMapOf()): LiveData<PaginateResponse<Movie>> {
+    fun fetchMovies1(@QueryMap queryMap: HashMap<String, String> = hashMapOf()): LiveData<PaginateResponse<MovieModel>> {
         GlobalScope.launch {
             val response = apiRepository?.fetchMovies1(queryMap = queryMap)
             try {
@@ -73,10 +73,12 @@ class MainViewModel : ViewModel() {
     fun fetchMovies2(@QueryMap queryMap: HashMap<String, String> = hashMapOf()) = liveData {
         val response = apiRepository?.fetchMovies1(queryMap = queryMap)
         try {
-            emit(response)
-        } catch (e: IOException) {
-            Log.e("response.isFailure", "Failure")
-            emit(null)
+            when (response?.isSuccessful) {
+                true -> emit(ApiResponse.Success(response.body()))
+                else -> emit(ApiResponse.Failure(400, "Ops, error occurs"))
+            }
+        } catch (e: Exception) {
+            emit(ApiResponse.Error(e))
         }
     }
 }
